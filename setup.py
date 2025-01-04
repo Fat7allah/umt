@@ -7,7 +7,7 @@ with open("requirements.txt") as f:
 from umt import __version__ as version
 
 setup(
-    name="umt",
+    name="umt",  # Keep the package name simple
     version=version,
     description="UNEM Management Tool",
     author="UMT",
