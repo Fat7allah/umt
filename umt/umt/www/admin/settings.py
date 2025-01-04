@@ -3,11 +3,9 @@ from frappe import _
 import json
 from typing import Dict, List, Optional, Union
 import os
-import shutil
 from datetime import datetime
-from frappe.utils import get_site_path, get_files_path, cint
-from frappe.utils.password import get_decrypted_password
-from frappe.utils.file_manager import save_file
+from frappe.utils import cint, get_site_name
+from frappe.utils.backups import backup
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -15,23 +13,10 @@ from email.mime.multipart import MIMEMultipart
 def get_context(context: Dict) -> Dict:
     """
     Prepare and return the context for the settings management page.
-    
-    This function:
-    1. Validates user permissions
-    2. Retrieves current settings
-    3. Loads supporting data (languages, payment methods, etc.)
-    4. Prepares backup information
-    
-    Args:
-        context (Dict): Base context dictionary
-    
-    Returns:
-        Dict: Enhanced context with settings data
     """
     if not has_settings_access():
         frappe.throw(_("غير مصرح لك بالوصول إلى صفحة الإعدادات"))
     
-    # Prepare all required data
     context.update({
         "settings": get_system_settings(),
         "languages": get_languages(),
@@ -44,53 +29,26 @@ def get_context(context: Dict) -> Dict:
     return context
 
 def has_settings_access() -> bool:
-    """
-    Check if current user has settings management access permissions.
-    
-    Returns:
-        bool: True if user has required permissions, False otherwise
-    """
-    allowed_roles = {"System Manager", "Administrator"}
-    user_roles = set(frappe.get_roles())
-    return bool(allowed_roles & user_roles)
+    """Check if current user has settings management access permissions."""
+    return frappe.has_permission("System Settings", "write")
 
 def get_system_settings() -> Dict:
-    """
-    Retrieve current system settings.
-    
-    Returns:
-        Dict: System settings
-    """
-    settings = frappe.get_doc("System Settings")
-    email_settings = frappe.get_doc("Email Settings")
+    """Retrieve current system settings."""
+    settings = frappe.get_single("System Settings")
     
     return {
-        # General Settings
-        "organization_name": settings.organization_name,
-        "address": settings.address,
-        "phone": settings.phone,
-        "email": settings.email,
-        "default_language": settings.language,
-        
-        # Email Settings
-        "smtp_server": email_settings.smtp_server,
-        "smtp_port": email_settings.smtp_port,
-        "smtp_user": email_settings.smtp_user,
-        "from_email": email_settings.from_address,
-        
-        # Security Settings
-        "session_expiry": settings.session_expiry_time,
+        "organization_name": frappe.defaults.get_global_default('company_name'),
+        "address": frappe.defaults.get_global_default('company_address'),
+        "phone": frappe.defaults.get_global_default('company_phone'),
+        "email": frappe.defaults.get_global_default('company_email'),
+        "default_language": frappe.local.lang,
+        "session_expiry": settings.session_expiry_timeout,
         "two_factor_auth": settings.enable_two_factor_auth,
-        "force_password_reset": settings.force_password_reset_days > 0
+        "force_password_reset": settings.force_user_to_reset_password
     }
 
 def get_languages() -> List[Dict]:
-    """
-    Get list of available languages.
-    
-    Returns:
-        List[Dict]: List of language dictionaries
-    """
+    """Get list of available languages."""
     return [
         {"code": "ar", "name": _("العربية")},
         {"code": "en", "name": _("English")},
@@ -98,53 +56,40 @@ def get_languages() -> List[Dict]:
     ]
 
 def get_payment_methods() -> List[Dict]:
-    """
-    Get list of payment methods.
-    
-    Returns:
-        List[Dict]: List of payment method dictionaries
-    """
+    """Get list of payment methods."""
     return frappe.get_all(
         "Payment Method",
-        fields=["name", "description", "enabled", "instructions"]
+        fields=["name", "method_name", "description", "enabled", "instructions"]
     )
 
 def get_notification_settings() -> List[Dict]:
-    """
-    Get list of notification settings.
-    
-    Returns:
-        List[Dict]: List of notification setting dictionaries
-    """
+    """Get notification settings."""
+    settings = frappe.get_single("Notification Settings")
     return [
         {
             "name": "membership_expiry",
             "title": _("تنبيه انتهاء العضوية"),
             "description": _("إرسال تنبيه قبل انتهاء العضوية"),
-            "enabled": True
+            "enabled": settings.enable_membership_expiry
         },
         {
             "name": "new_member",
             "title": _("عضو جديد"),
             "description": _("إشعار عند تسجيل عضو جديد"),
-            "enabled": True
+            "enabled": settings.enable_new_member
         },
         {
             "name": "payment_received",
             "title": _("استلام دفعة"),
             "description": _("إشعار عند استلام دفعة جديدة"),
-            "enabled": True
+            "enabled": settings.enable_payment_received
         }
     ]
 
 def get_backup_list() -> List[Dict]:
-    """
-    Get list of available backups.
-    
-    Returns:
-        List[Dict]: List of backup dictionaries with metadata
-    """
-    backup_path = os.path.join(get_site_path(), "private", "backups")
+    """Get list of available backups."""
+    site_path = frappe.get_site_path()
+    backup_path = os.path.join(site_path, "private", "backups")
     backups = []
     
     if os.path.exists(backup_path):
@@ -161,25 +106,12 @@ def get_backup_list() -> List[Dict]:
     return sorted(backups, key=lambda x: x["date"], reverse=True)
 
 def get_last_backup_date() -> Optional[str]:
-    """
-    Get the date of the last backup.
-    
-    Returns:
-        Optional[str]: Date string of last backup or None if no backups exist
-    """
+    """Get the date of the last backup."""
     backups = get_backup_list()
     return backups[0]["date"] if backups else None
 
 def format_size(size: int) -> str:
-    """
-    Format file size in human-readable format.
-    
-    Args:
-        size (int): Size in bytes
-    
-    Returns:
-        str: Formatted size string
-    """
+    """Format file size in human-readable format."""
     for unit in ['B', 'KB', 'MB', 'GB']:
         if size < 1024:
             return f"{size:.1f} {unit}"
@@ -188,38 +120,35 @@ def format_size(size: int) -> str:
 
 @frappe.whitelist()
 def save_settings(settings: Union[str, Dict]) -> Dict:
-    """
-    Save system settings.
-    
-    Args:
-        settings (Union[str, Dict]): Settings data to save
-    
-    Returns:
-        Dict: Response indicating success or failure
-    """
+    """Save system settings."""
+    if not has_settings_access():
+        frappe.throw(_("غير مصرح لك بتعديل الإعدادات"))
+        
     if isinstance(settings, str):
         settings = json.loads(settings)
     
     try:
         # Update System Settings
-        sys_settings = frappe.get_doc("System Settings")
-        sys_settings.update(settings.get("general", {}))
+        sys_settings = frappe.get_single("System Settings")
+        general = settings.get("general", {})
+        
+        # Update company defaults
+        frappe.defaults.set_global_default('company_name', general.get('organization_name'))
+        frappe.defaults.set_global_default('company_address', general.get('address'))
+        frappe.defaults.set_global_default('company_phone', general.get('phone'))
+        frappe.defaults.set_global_default('company_email', general.get('email'))
+        
+        # Update security settings
+        security = settings.get("security", {})
+        sys_settings.session_expiry_timeout = cint(security.get("session_expiry"))
+        sys_settings.enable_two_factor_auth = security.get("two_factor_auth")
+        sys_settings.force_user_to_reset_password = security.get("force_password_reset")
         sys_settings.save()
         
-        # Update Email Settings
-        email_settings = frappe.get_doc("Email Settings")
-        email_settings.update(settings.get("email", {}))
-        email_settings.save()
-        
-        # Update Notification Settings
+        # Update notification settings
         update_notification_settings(settings.get("notifications", []))
         
-        # Update Security Settings
-        security = settings.get("security", {})
-        sys_settings.session_expiry_time = cint(security.get("session_expiry"))
-        sys_settings.enable_two_factor_auth = security.get("two_factor_auth")
-        sys_settings.force_password_reset_days = 90 if security.get("force_password_reset") else 0
-        sys_settings.save()
+        frappe.clear_cache()
         
         return {
             "success": True,
@@ -233,67 +162,23 @@ def save_settings(settings: Union[str, Dict]) -> Dict:
         }
 
 @frappe.whitelist()
-def test_email_settings(settings: Union[str, Dict]) -> Dict:
-    """
-    Test email settings by sending a test email.
-    
-    Args:
-        settings (Union[str, Dict]): Email settings to test
-    
-    Returns:
-        Dict: Response indicating success or failure
-    """
-    if isinstance(settings, str):
-        settings = json.loads(settings)
-    
-    try:
-        # Create test email
-        msg = MIMEMultipart()
-        msg["From"] = settings["from_email"]
-        msg["To"] = frappe.session.user
-        msg["Subject"] = _("اختبار إعدادات البريد الإلكتروني")
-        
-        body = _("هذا بريد اختباري للتحقق من صحة إعدادات البريد الإلكتروني.")
-        msg.attach(MIMEText(body, "plain"))
-        
-        # Connect to SMTP server and send
-        with smtplib.SMTP(settings["smtp_server"], int(settings["smtp_port"])) as server:
-            server.starttls()
-            server.login(settings["smtp_user"], settings["smtp_password"])
-            server.send_message(msg)
-        
-        return {
-            "success": True,
-            "message": _("تم إرسال بريد الاختبار بنجاح")
-        }
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), _("خطأ في اختبار إعدادات البريد"))
-        return {
-            "success": False,
-            "message": str(e)
-        }
-
-@frappe.whitelist()
 def save_payment_method(data: Union[str, Dict]) -> Dict:
-    """
-    Save a new payment method or update existing one.
-    
-    Args:
-        data (Union[str, Dict]): Payment method data
-    
-    Returns:
-        Dict: Response indicating success or failure
-    """
+    """Save a payment method."""
+    if not has_settings_access():
+        frappe.throw(_("غير مصرح لك بتعديل طرق الدفع"))
+        
     if isinstance(data, str):
         data = json.loads(data)
     
     try:
-        if frappe.db.exists("Payment Method", data["name"]):
-            doc = frappe.get_doc("Payment Method", data["name"])
+        method_name = data.pop("name", None)
+        if frappe.db.exists("Payment Method", method_name):
+            doc = frappe.get_doc("Payment Method", method_name)
             doc.update(data)
         else:
             doc = frappe.get_doc({
                 "doctype": "Payment Method",
+                "method_name": method_name,
                 **data
             })
         
@@ -312,16 +197,10 @@ def save_payment_method(data: Union[str, Dict]) -> Dict:
 
 @frappe.whitelist()
 def toggle_payment_method(name: str, enabled: bool) -> Dict:
-    """
-    Toggle payment method status.
-    
-    Args:
-        name (str): Payment method name
-        enabled (bool): New enabled status
-    
-    Returns:
-        Dict: Response indicating success or failure
-    """
+    """Toggle payment method status."""
+    if not has_settings_access():
+        frappe.throw(_("غير مصرح لك بتعديل طرق الدفع"))
+        
     try:
         doc = frappe.get_doc("Payment Method", name)
         doc.enabled = enabled
@@ -340,16 +219,12 @@ def toggle_payment_method(name: str, enabled: bool) -> Dict:
 
 @frappe.whitelist()
 def create_backup() -> Dict:
-    """
-    Create a new system backup.
-    
-    Returns:
-        Dict: Response indicating success or failure
-    """
-    try:
-        from frappe.utils.backups import backup
-        backup_manager = backup(ignore_files=False, force=True)
+    """Create a new system backup."""
+    if not has_settings_access():
+        frappe.throw(_("غير مصرح لك بإنشاء نسخة احتياطية"))
         
+    try:
+        backup_manager = backup(ignore_files=False, force=True)
         return {
             "success": True,
             "message": _("تم إنشاء النسخة الاحتياطية بنجاح"),
@@ -364,16 +239,11 @@ def create_backup() -> Dict:
 
 @frappe.whitelist()
 def download_backup(name: str) -> None:
-    """
-    Download a backup file.
-    
-    Args:
-        name (str): Backup file name
-    """
+    """Download a backup file."""
     if not has_settings_access():
         frappe.throw(_("غير مصرح لك بتحميل النسخ الاحتياطية"))
     
-    backup_path = os.path.join(get_site_path(), "private", "backups", name)
+    backup_path = os.path.join(frappe.get_site_path(), "private", "backups", name)
     
     if os.path.exists(backup_path):
         with open(backup_path, "rb") as f:
@@ -385,21 +255,15 @@ def download_backup(name: str) -> None:
 
 @frappe.whitelist()
 def delete_backup(name: str) -> Dict:
-    """
-    Delete a backup file.
-    
-    Args:
-        name (str): Backup file name
-    
-    Returns:
-        Dict: Response indicating success or failure
-    """
+    """Delete a backup file."""
+    if not has_settings_access():
+        frappe.throw(_("غير مصرح لك بحذف النسخ الاحتياطية"))
+        
     try:
-        backup_path = os.path.join(get_site_path(), "private", "backups", name)
+        backup_path = os.path.join(frappe.get_site_path(), "private", "backups", name)
         
         if os.path.exists(backup_path):
             os.remove(backup_path)
-            
             return {
                 "success": True,
                 "message": _("تم حذف النسخة الاحتياطية بنجاح")
@@ -417,13 +281,11 @@ def delete_backup(name: str) -> Dict:
         }
 
 def update_notification_settings(notifications: List[str]) -> None:
-    """
-    Update notification settings in the system.
-    
-    Args:
-        notifications (List[str]): List of enabled notification types
-    """
-    settings = frappe.get_doc("Notification Settings")
+    """Update notification settings."""
+    if not has_settings_access():
+        frappe.throw(_("غير مصرح لك بتعديل إعدادات الإشعارات"))
+        
+    settings = frappe.get_single("Notification Settings")
     
     for notification in get_notification_settings():
         setattr(settings, f"enable_{notification['name']}", 

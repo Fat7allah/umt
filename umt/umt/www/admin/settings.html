@@ -27,9 +27,6 @@
                     <a class="nav-link active" data-toggle="pill" href="#general">
                         <i class="fa fa-cog"></i> {{ _("الإعدادات العامة") }}
                     </a>
-                    <a class="nav-link" data-toggle="pill" href="#email">
-                        <i class="fa fa-envelope"></i> {{ _("إعدادات البريد") }}
-                    </a>
                     <a class="nav-link" data-toggle="pill" href="#payment">
                         <i class="fa fa-credit-card"></i> {{ _("طرق الدفع") }}
                     </a>
@@ -89,44 +86,6 @@
                         </div>
                     </div>
 
-                    <!-- Email Settings -->
-                    <div class="tab-pane fade" id="email">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5>{{ _("إعدادات البريد الإلكتروني") }}</h5>
-                                <form id="emailForm">
-                                    <div class="form-group">
-                                        <label>{{ _("خادم SMTP") }}</label>
-                                        <input type="text" class="form-control" name="smtp_server" 
-                                               value="{{ settings.smtp_server }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>{{ _("المنفذ") }}</label>
-                                        <input type="number" class="form-control" name="smtp_port" 
-                                               value="{{ settings.smtp_port }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>{{ _("اسم المستخدم") }}</label>
-                                        <input type="text" class="form-control" name="smtp_user" 
-                                               value="{{ settings.smtp_user }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>{{ _("كلمة المرور") }}</label>
-                                        <input type="password" class="form-control" name="smtp_password">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>{{ _("البريد الإلكتروني المرسل") }}</label>
-                                        <input type="email" class="form-control" name="from_email" 
-                                               value="{{ settings.from_email }}">
-                                    </div>
-                                    <button type="button" class="btn btn-info" onclick="testEmailSettings()">
-                                        <i class="fa fa-paper-plane"></i> {{ _("اختبار الإعدادات") }}
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Payment Methods -->
                     <div class="tab-pane fade" id="payment">
                         <div class="card">
@@ -142,7 +101,7 @@
                                     <div class="payment-method-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
-                                                <h6>{{ method.name }}</h6>
+                                                <h6>{{ method.method_name }}</h6>
                                                 <p class="mb-0">{{ method.description }}</p>
                                             </div>
                                             <div class="custom-control custom-switch">
@@ -294,7 +253,7 @@
                 <form id="paymentMethodForm">
                     <div class="form-group">
                         <label>{{ _("الإسم") }}</label>
-                        <input type="text" class="form-control" name="name" required>
+                        <input type="text" class="form-control" name="method_name" required>
                     </div>
                     <div class="form-group">
                         <label>{{ _("الوصف") }}</label>
@@ -393,7 +352,6 @@
     function saveAllSettings() {
         var settings = {
             general: getFormData('#generalForm'),
-            email: getFormData('#emailForm'),
             notifications: getNotificationSettings(),
             security: getFormData('#securityForm')
         };
@@ -423,23 +381,6 @@
             notifications.push($(this).attr('id').replace('notif_', ''));
         });
         return notifications;
-    }
-
-    function testEmailSettings() {
-        var emailSettings = getFormData('#emailForm');
-        
-        frappe.call({
-            method: 'umt.umt.www.admin.settings.test_email_settings',
-            args: { settings: emailSettings },
-            callback: function(r) {
-                if (!r.exc) {
-                    frappe.show_alert({
-                        message: __('تم إرسال بريد الاختبار بنجاح'),
-                        indicator: 'green'
-                    });
-                }
-            }
-        });
     }
 
     function showPaymentMethodForm() {

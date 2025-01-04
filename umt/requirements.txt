@@ -1,0 +1,2 @@
+frappe>=14.0.0
+frappe-bench>=5.2.1
