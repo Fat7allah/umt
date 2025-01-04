@@ -1,0 +1,232 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="member-portal">
+    <!-- Header Section -->
+    <div class="hero-section">
+        <h1>{{ _("بوابة الأعضاء") }}</h1>
+        {% if frappe.session.user != 'Guest' %}
+        <p>{{ _("مرحباً") }}, {{ member.full_name }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        {% if frappe.session.user != 'Guest' %}
+            <!-- Member Dashboard -->
+            <div class="row">
+                <!-- Membership Status Card -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ _("حالة العضوية") }}</h5>
+                            <p class="card-text">
+                                <span class="status-badge {{ member.membership_status.lower() }}">
+                                    {{ _(member.membership_status) }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Membership Card -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ _("بطاقة العضوية") }}</h5>
+                            <p class="card-text">
+                                {{ _("رقم البطاقة") }}: {{ member.current_card }}
+                                <br>
+                                {{ _("الصلاحية") }}: {{ member.card_expiry }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ _("إجراءات سريعة") }}</h5>
+                            <div class="quick-actions">
+                                <a href="/renew-membership" class="btn btn-primary">{{ _("تجديد العضوية") }}</a>
+                                <a href="/update-profile" class="btn btn-secondary">{{ _("تحديث البيانات") }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Member Information -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ _("معلومات العضو") }}</h5>
+                            <table class="table">
+                                <tr>
+                                    <td>{{ _("الإسم الكامل") }}</td>
+                                    <td>{{ member.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ _("رقم العضوية") }}</td>
+                                    <td>{{ member.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ _("الإقليم") }}</td>
+                                    <td>{{ member.province }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ _("تاريخ الإنضمام") }}</td>
+                                    <td>{{ member.membership_date }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ _("آخر الأنشطة") }}</h5>
+                            <ul class="activity-list">
+                                {% for activity in activities %}
+                                <li>
+                                    <span class="activity-date">{{ activity.date }}</span>
+                                    <span class="activity-text">{{ activity.description }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents and Services -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ _("الوثائق والخدمات") }}</h5>
+                            <div class="documents-grid">
+                                <a href="/download-card" class="document-item">
+                                    <i class="fa fa-id-card"></i>
+                                    <span>{{ _("تحميل البطاقة") }}</span>
+                                </a>
+                                <a href="/payment-history" class="document-item">
+                                    <i class="fa fa-history"></i>
+                                    <span>{{ _("سجل المدفوعات") }}</span>
+                                </a>
+                                <a href="/certificates" class="document-item">
+                                    <i class="fa fa-certificate"></i>
+                                    <span>{{ _("الشهادات") }}</span>
+                                </a>
+                                <a href="/support" class="document-item">
+                                    <i class="fa fa-support"></i>
+                                    <span>{{ _("الدعم") }}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Login Section -->
+            <div class="login-section">
+                <h2>{{ _("تسجيل الدخول") }}</h2>
+                <p>{{ _("يرجى تسجيل الدخول للوصول إلى بوابة الأعضاء") }}</p>
+                <a href="/login" class="btn btn-primary">{{ _("تسجيل الدخول") }}</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    .member-portal {
+        padding: 2rem 0;
+    }
+
+    .hero-section {
+        text-align: center;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 0 0 2rem 2rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-weight: bold;
+    }
+
+    .status-badge.active {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .status-badge.inactive {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        flex-direction: column;
+    }
+
+    .activity-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .activity-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .activity-date {
+        color: #666;
+        margin-right: 1rem;
+    }
+
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .document-item {
+        padding: 1rem;
+        border: 1px solid #eee;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .document-item:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-2px);
+    }
+
+    .document-item i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #1a237e;
+    }
+
+    .login-section {
+        text-align: center;
+        padding: 3rem;
+        background-color: #f5f5f5;
+        border-radius: 1rem;
+    }
+</style>
+{% endblock %}

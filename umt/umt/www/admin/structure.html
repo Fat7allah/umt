@@ -1,0 +1,578 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="admin-structure">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>{{ _("إدارة الهياكل") }}</h1>
+                    <p>{{ _("إدارة الهيكل التنظيمي والأدوار") }}</p>
+                </div>
+                <div class="header-actions">
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="showStructureForm()">
+                            <i class="fa fa-plus"></i> {{ _("هيكل جديد") }}
+                        </button>
+                        <button class="btn btn-info" onclick="showRoleForm()">
+                            <i class="fa fa-user-plus"></i> {{ _("دور جديد") }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Structure Overview -->
+        <div class="row">
+            <!-- Organizational Tree -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>{{ _("الهيكل التنظيمي") }}</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="expandAll()">
+                                <i class="fa fa-plus-square"></i> {{ _("توسيع الكل") }}
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="collapseAll()">
+                                <i class="fa fa-minus-square"></i> {{ _("طي الكل") }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="organizationTree"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5>{{ _("إحصائيات الهيكل") }}</h5>
+                        <div class="stats-list">
+                            <div class="stat-item">
+                                <span class="stat-label">{{ _("عدد الأقاليم") }}</span>
+                                <span class="stat-value">{{ province_count }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">{{ _("عدد المكاتب") }}</span>
+                                <span class="stat-value">{{ office_count }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">{{ _("عدد المناصب") }}</span>
+                                <span class="stat-value">{{ position_count }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">{{ _("المناصب الشاغرة") }}</span>
+                                <span class="stat-value">{{ vacant_count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Role Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{{ _("الأدوار والصلاحيات") }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="roles-list">
+                            {% for role in roles %}
+                            <div class="role-item">
+                                <div class="role-header">
+                                    <span class="role-name">{{ role.name }}</span>
+                                    <div class="role-actions">
+                                        <button class="btn btn-sm btn-link" onclick="editRole('{{ role.name }}')">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-link text-danger" onclick="deleteRole('{{ role.name }}')">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="role-members">
+                                    {{ _("الأعضاء") }}: {{ role.member_count }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Province Management -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>{{ _("إدارة الأقاليم") }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="provincesTable">
+                        <thead>
+                            <tr>
+                                <th>{{ _("الإقليم") }}</th>
+                                <th>{{ _("عدد المكاتب") }}</th>
+                                <th>{{ _("عدد الأعضاء") }}</th>
+                                <th>{{ _("المسؤول") }}</th>
+                                <th>{{ _("الحالة") }}</th>
+                                <th>{{ _("إجراءات") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for province in provinces %}
+                            <tr>
+                                <td>{{ province.name }}</td>
+                                <td>{{ province.office_count }}</td>
+                                <td>{{ province.member_count }}</td>
+                                <td>{{ province.head_name or '' }}</td>
+                                <td>
+                                    <span class="status-badge {{ province.status.lower() }}">
+                                        {{ _(province.status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-info" onclick="viewProvince('{{ province.name }}')">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" onclick="editProvince('{{ province.name }}')">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteProvince('{{ province.name }}')">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Structure Form Modal -->
+<div class="modal fade" id="structureModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _("هيكل جديد") }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="structureForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ _("الإسم") }}</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ _("النوع") }}</label>
+                                <select class="form-control" name="type" required>
+                                    <option value="province">{{ _("إقليم") }}</option>
+                                    <option value="office">{{ _("مكتب") }}</option>
+                                    <option value="department">{{ _("قسم") }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("الهيكل الأب") }}</label>
+                        <select class="form-control" name="parent_structure" id="parentStructure">
+                            <option value="">{{ _("لا يوجد") }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("الوصف") }}</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    {{ _("إلغاء") }}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveStructure()">
+                    {{ _("حفظ") }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Form Modal -->
+<div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _("دور جديد") }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <div class="form-group">
+                        <label>{{ _("إسم الدور") }}</label>
+                        <input type="text" class="form-control" name="role_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("الوصف") }}</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("الصلاحيات") }}</label>
+                        <div class="permissions-list">
+                            {% for perm in permissions %}
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" 
+                                       id="perm_{{ perm.name }}" name="permissions" 
+                                       value="{{ perm.name }}">
+                                <label class="custom-control-label" for="perm_{{ perm.name }}">
+                                    {{ perm.description }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    {{ _("إلغاء") }}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveRole()">
+                    {{ _("حفظ") }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    .admin-structure {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    #organizationTree {
+        min-height: 400px;
+        max-height: 600px;
+        overflow: auto;
+    }
+
+    .stats-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        color: #1a237e;
+    }
+
+    .roles-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .role-item {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+
+    .role-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .role-name {
+        font-weight: bold;
+    }
+
+    .role-members {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .status-badge {
+        padding: 0.25rem 1rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .status-badge.active {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .status-badge.inactive {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .permissions-list {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+    }
+
+    .custom-control {
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css"/>
+
+<script>
+    frappe.ready(function() {
+        initializeTree();
+        initializeDataTables();
+    });
+
+    function initializeTree() {
+        $('#organizationTree').jstree({
+            'core': {
+                'data': {{ organization_tree | json }},
+                'themes': {
+                    'name': 'default',
+                    'responsive': true
+                }
+            },
+            'plugins': ['types', 'dnd', 'search']
+        }).on('select_node.jstree', function(e, data) {
+            viewStructure(data.node.id);
+        });
+    }
+
+    function initializeDataTables() {
+        $('#provincesTable').DataTable({
+            pageLength: 10,
+            dom: 'rtip',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Arabic.json'
+            }
+        });
+    }
+
+    function expandAll() {
+        $('#organizationTree').jstree('open_all');
+    }
+
+    function collapseAll() {
+        $('#organizationTree').jstree('close_all');
+    }
+
+    function showStructureForm() {
+        loadParentStructures();
+        $('#structureModal').modal('show');
+    }
+
+    function loadParentStructures() {
+        frappe.call({
+            method: 'umt.umt.www.admin.structure.get_parent_structures',
+            callback: function(r) {
+                if (!r.exc) {
+                    var select = $('#parentStructure');
+                    select.empty();
+                    select.append('<option value="">{{ _("لا يوجد") }}</option>');
+                    r.message.forEach(function(structure) {
+                        select.append(`<option value="${structure.name}">${structure.title}</option>`);
+                    });
+                }
+            }
+        });
+    }
+
+    function saveStructure() {
+        var formData = new FormData($('#structureForm')[0]);
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.structure.save_structure',
+            args: {
+                data: Object.fromEntries(formData)
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم حفظ الهيكل بنجاح'),
+                        indicator: 'green'
+                    });
+                    $('#structureModal').modal('hide');
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    function showRoleForm() {
+        $('#roleForm')[0].reset();
+        $('#roleModal').modal('show');
+    }
+
+    function saveRole() {
+        var formData = new FormData($('#roleForm')[0]);
+        var permissions = [];
+        $('input[name="permissions"]:checked').each(function() {
+            permissions.push($(this).val());
+        });
+        formData.append('permissions', JSON.stringify(permissions));
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.structure.save_role',
+            args: {
+                data: Object.fromEntries(formData)
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم حفظ الدور بنجاح'),
+                        indicator: 'green'
+                    });
+                    $('#roleModal').modal('hide');
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    // Province Management Functions
+    function viewProvince(name) {
+        window.location.href = '/admin/structure/province/' + name;
+    }
+
+    function editProvince(name) {
+        frappe.call({
+            method: 'umt.umt.www.admin.structure.get_province',
+            args: { name: name },
+            callback: function(r) {
+                if (!r.exc) {
+                    var province = r.message;
+                    $('#structureForm [name="name"]').val(province.name);
+                    $('#structureForm [name="type"]').val('province');
+                    $('#structureForm [name="description"]').val(province.description);
+                    $('#structureModal').modal('show');
+                }
+            }
+        });
+    }
+
+    function deleteProvince(name) {
+        frappe.confirm(
+            __('هل أنت متأكد من حذف هذا الإقليم؟'),
+            function() {
+                frappe.call({
+                    method: 'umt.umt.www.admin.structure.delete_province',
+                    args: { name: name },
+                    callback: function(r) {
+                        if (!r.exc) {
+                            frappe.show_alert({
+                                message: __('تم حذف الإقليم بنجاح'),
+                                indicator: 'green'
+                            });
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        );
+    }
+
+    // Role Management Functions
+    function editRole(name) {
+        frappe.call({
+            method: 'umt.umt.www.admin.structure.get_role',
+            args: { name: name },
+            callback: function(r) {
+                if (!r.exc) {
+                    var role = r.message;
+                    $('#roleForm [name="role_name"]').val(role.name);
+                    $('#roleForm [name="description"]').val(role.description);
+                    
+                    // Set permissions
+                    $('input[name="permissions"]').prop('checked', false);
+                    role.permissions.forEach(function(perm) {
+                        $(`#perm_${perm}`).prop('checked', true);
+                    });
+                    
+                    $('#roleModal').modal('show');
+                }
+            }
+        });
+    }
+
+    function deleteRole(name) {
+        frappe.confirm(
+            __('هل أنت متأكد من حذف هذا الدور؟'),
+            function() {
+                frappe.call({
+                    method: 'umt.umt.www.admin.structure.delete_role',
+                    args: { name: name },
+                    callback: function(r) {
+                        if (!r.exc) {
+                            frappe.show_alert({
+                                message: __('تم حذف الدور بنجاح'),
+                                indicator: 'green'
+                            });
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        );
+    }
+</script>
+{% endblock %}

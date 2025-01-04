@@ -1,0 +1,96 @@
+{
+ "charts": [
+  {
+   "chart_name": "Member Distribution by Province",
+   "label": "توزيع الأعضاء حسب الإقليم"
+  },
+  {
+   "chart_name": "Membership Status Trend",
+   "label": "تطور حالة العضوية"
+  }
+ ],
+ "content": [
+  {
+   "label": "العضوية",
+   "links": "[\n    {\n        \"label\": \"عضو جديد\",\n        \"name\": \"Member\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"بطاقة العضوية\",\n        \"name\": \"Membership_Card\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"تجديد العضوية\",\n        \"name\": \"Membership Renewal\",\n        \"onboard\": 0,\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "label": "التقارير",
+   "links": "[\n    {\n        \"label\": \"تقرير حالة الأعضاء\",\n        \"name\": \"Member Status Report\",\n        \"onboard\": 1,\n        \"type\": \"report\"\n    },\n    {\n        \"label\": \"تقرير البطاقات\",\n        \"name\": \"Membership Card Report\",\n        \"onboard\": 0,\n        \"type\": \"report\"\n    }\n]"
+  },
+  {
+   "label": "الإحصائيات",
+   "links": "[\n    {\n        \"label\": \"إحصائيات العضوية\",\n        \"name\": \"Membership Analytics\",\n        \"onboard\": 1,\n        \"type\": \"page\"\n    },\n    {\n        \"label\": \"لوحة المعلومات\",\n        \"name\": \"Member Dashboard\",\n        \"onboard\": 0,\n        \"type\": \"dashboard\"\n    }\n]"
+  }
+ ],
+ "creation": "2025-01-03 16:39:49.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "users",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Member Management",
+ "links": [],
+ "modified": "2025-01-03 16:39:49.000000",
+ "modified_by": "Administrator",
+ "module": "UMT",
+ "name": "Member Management",
+ "number_cards": [
+  {
+   "label": "الأعضاء الجدد هذا الشهر",
+   "name": "New Members This Month",
+   "stats_filter": "{\n    \"doctype\": \"Member\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"creation\": [\"Timespan\", \"this\", \"month\"]\n    }\n}"
+  },
+  {
+   "label": "البطاقات المنتهية",
+   "name": "Expired Cards",
+   "stats_filter": "{\n    \"doctype\": \"Membership_Card\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"status\": \"Expired\"\n    }\n}"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "UNEM Management",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Member",
+   "label": "الأعضاء المنتظرون",
+   "quick_list_filter": "{\n    \"membership_status\": \"Pending\"\n}"
+  },
+  {
+   "document_type": "Membership_Card",
+   "label": "البطاقات للتجديد",
+   "quick_list_filter": "{\n    \"status\": \"Expiring\"\n}"
+  }
+ ],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "UNEM Manager"
+  }
+ ],
+ "sequence_id": 2.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "format": "{} عضو",
+   "label": "الأعضاء النشطاء",
+   "link_to": "Member",
+   "stats_filter": "{\n    \"doctype\": \"Member\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"membership_status\": \"Active\"\n    }\n}",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "format": "{} بطاقة",
+   "label": "البطاقات النشطة",
+   "link_to": "Membership_Card",
+   "stats_filter": "{\n    \"doctype\": \"Membership_Card\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"status\": \"Active\"\n    }\n}",
+   "type": "DocType"
+  }
+ ],
+ "title": "Member Management"
+}

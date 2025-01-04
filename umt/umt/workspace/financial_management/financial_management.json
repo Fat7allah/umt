@@ -1,0 +1,96 @@
+{
+ "charts": [
+  {
+   "chart_name": "Monthly Income vs Expense",
+   "label": "المداخيل والمصاريف الشهرية"
+  },
+  {
+   "chart_name": "Income Distribution",
+   "label": "توزيع المداخيل"
+  }
+ ],
+ "content": [
+  {
+   "label": "المعاملات",
+   "links": "[\n    {\n        \"label\": \"تسجيل مدخول\",\n        \"name\": \"Income_Entry\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"تسجيل مصروف\",\n        \"name\": \"Expense_Entry\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"تسجيل دفعة\",\n        \"name\": \"Payment Entry\",\n        \"onboard\": 0,\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "label": "التقارير المالية",
+   "links": "[\n    {\n        \"label\": \"التقرير المالي\",\n        \"name\": \"Financial Summary Report\",\n        \"onboard\": 1,\n        \"type\": \"report\"\n    },\n    {\n        \"label\": \"تقرير المداخيل\",\n        \"name\": \"Income Report\",\n        \"onboard\": 0,\n        \"type\": \"report\"\n    },\n    {\n        \"label\": \"تقرير المصاريف\",\n        \"name\": \"Expense Report\",\n        \"onboard\": 0,\n        \"type\": \"report\"\n    }\n]"
+  },
+  {
+   "label": "التحليلات",
+   "links": "[\n    {\n        \"label\": \"لوحة المعلومات المالية\",\n        \"name\": \"Financial Dashboard\",\n        \"onboard\": 1,\n        \"type\": \"dashboard\"\n    },\n    {\n        \"label\": \"تحليل الميزانية\",\n        \"name\": \"Budget Analysis\",\n        \"onboard\": 0,\n        \"type\": \"page\"\n    }\n]"
+  }
+ ],
+ "creation": "2025-01-03 16:39:49.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "accounting",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Financial Management",
+ "links": [],
+ "modified": "2025-01-03 16:39:49.000000",
+ "modified_by": "Administrator",
+ "module": "UMT",
+ "name": "Financial Management",
+ "number_cards": [
+  {
+   "label": "مداخيل هذا الشهر",
+   "name": "Income This Month",
+   "stats_filter": "{\n    \"doctype\": \"Income_Entry\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"posting_date\": [\"Timespan\", \"this\", \"month\"]\n    },\n    \"aggregate_function_based_on\": \"amount\"\n}"
+  },
+  {
+   "label": "مصاريف هذا الشهر",
+   "name": "Expenses This Month",
+   "stats_filter": "{\n    \"doctype\": \"Expense_Entry\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"posting_date\": [\"Timespan\", \"this\", \"month\"]\n    },\n    \"aggregate_function_based_on\": \"amount\"\n}"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "UNEM Management",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Income_Entry",
+   "label": "آخر المداخيل",
+   "quick_list_filter": "{\n    \"creation\": [\"Timespan\", \"last\", \"week\"]\n}"
+  },
+  {
+   "document_type": "Expense_Entry",
+   "label": "آخر المصاريف",
+   "quick_list_filter": "{\n    \"creation\": [\"Timespan\", \"last\", \"week\"]\n}"
+  }
+ ],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "UNEM Manager"
+  }
+ ],
+ "sequence_id": 3.0,
+ "shortcuts": [
+  {
+   "color": "Green",
+   "format": "{} درهم",
+   "label": "مجموع المداخيل",
+   "link_to": "Income_Entry",
+   "stats_filter": "{\n    \"doctype\": \"Income_Entry\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"posting_date\": [\"Timespan\", \"this\", \"year\"]\n    },\n    \"aggregate_function_based_on\": \"amount\"\n}",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "format": "{} درهم",
+   "label": "مجموع المصاريف",
+   "link_to": "Expense_Entry",
+   "stats_filter": "{\n    \"doctype\": \"Expense_Entry\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"posting_date\": [\"Timespan\", \"this\", \"year\"]\n    },\n    \"aggregate_function_based_on\": \"amount\"\n}",
+   "type": "DocType"
+  }
+ ],
+ "title": "Financial Management"
+}

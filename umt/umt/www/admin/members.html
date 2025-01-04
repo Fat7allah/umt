@@ -1,0 +1,372 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="admin-members">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>{{ _("إدارة الأعضاء") }}</h1>
+                    <p>{{ _("إدارة الأعضاء والبطاقات") }}</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showNewMemberForm()">
+                        <i class="fa fa-plus"></i> {{ _("عضو جديد") }}
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportMembers()">
+                        <i class="fa fa-download"></i> {{ _("تصدير") }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>{{ _("الإقليم") }}</label>
+                            <select class="form-control" id="provinceFilter">
+                                <option value="">{{ _("الكل") }}</option>
+                                {% for province in provinces %}
+                                <option value="{{ province.name }}">{{ province.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>{{ _("حالة العضوية") }}</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="">{{ _("الكل") }}</option>
+                                <option value="Active">{{ _("نشط") }}</option>
+                                <option value="Inactive">{{ _("غير نشط") }}</option>
+                                <option value="Expired">{{ _("منتهي") }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>{{ _("السنة الدراسية") }}</label>
+                            <select class="form-control" id="yearFilter">
+                                <option value="">{{ _("الكل") }}</option>
+                                {% for year in academic_years %}
+                                <option value="{{ year.name }}">{{ year.year_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>{{ _("بحث") }}</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="{{ _('بحث...') }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="membersTable">
+                        <thead>
+                            <tr>
+                                <th>{{ _("رقم العضوية") }}</th>
+                                <th>{{ _("الإسم الكامل") }}</th>
+                                <th>{{ _("الإقليم") }}</th>
+                                <th>{{ _("حالة العضوية") }}</th>
+                                <th>{{ _("رقم البطاقة") }}</th>
+                                <th>{{ _("تاريخ الإنضمام") }}</th>
+                                <th>{{ _("إجراءات") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td>{{ member.name }}</td>
+                                <td>{{ member.full_name }}</td>
+                                <td>{{ member.province }}</td>
+                                <td>
+                                    <span class="status-badge {{ member.membership_status.lower() }}">
+                                        {{ _(member.membership_status) }}
+                                    </span>
+                                </td>
+                                <td>{{ member.current_card or '' }}</td>
+                                <td>{{ member.membership_date }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-info" onclick="viewMember('{{ member.name }}')">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" onclick="editMember('{{ member.name }}')">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteMember('{{ member.name }}')">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    {{ pagination }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Member Form Modal -->
+<div class="modal fade" id="memberModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _("عضو جديد") }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="memberForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ _("الإسم الكامل") }}</label>
+                                <input type="text" class="form-control" name="full_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ _("الإقليم") }}</label>
+                                <select class="form-control" name="province" required>
+                                    {% for province in provinces %}
+                                    <option value="{{ province.name }}">{{ province.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Add more form fields as needed -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    {{ _("إلغاء") }}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveMember()">
+                    {{ _("حفظ") }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    .admin-members {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 1rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .status-badge.active {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .status-badge.inactive {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .status-badge.expired {
+        background-color: #ff9800;
+        color: white;
+    }
+
+    .pagination-container {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+
+    .modal-header {
+        background-color: #1a237e;
+        color: white;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .close {
+        color: white;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+    frappe.ready(function() {
+        // Initialize DataTable
+        var table = $('#membersTable').DataTable({
+            pageLength: 25,
+            dom: 'rtip',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Arabic.json'
+            }
+        });
+
+        // Handle filters
+        $('#provinceFilter, #statusFilter, #yearFilter').on('change', function() {
+            table.draw();
+        });
+
+        $('#searchInput').on('keyup', function() {
+            table.search(this.value).draw();
+        });
+
+        // Custom filtering function
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            var province = $('#provinceFilter').val();
+            var status = $('#statusFilter').val();
+            var year = $('#yearFilter').val();
+
+            if (
+                (province === "" || data[2] === province) &&
+                (status === "" || data[3].includes(status)) &&
+                (year === "" || true) // Add year filtering logic if needed
+            ) {
+                return true;
+            }
+            return false;
+        });
+    });
+
+    // Member management functions
+    function showNewMemberForm() {
+        $('#memberForm')[0].reset();
+        $('#memberModal').modal('show');
+    }
+
+    function saveMember() {
+        var formData = new FormData($('#memberForm')[0]);
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.members.save_member',
+            args: {
+                data: Object.fromEntries(formData)
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم حفظ العضو بنجاح'),
+                        indicator: 'green'
+                    });
+                    $('#memberModal').modal('hide');
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    function viewMember(name) {
+        window.location.href = '/admin/members/' + name;
+    }
+
+    function editMember(name) {
+        frappe.call({
+            method: 'umt.umt.www.admin.members.get_member',
+            args: { name: name },
+            callback: function(r) {
+                if (!r.exc) {
+                    var member = r.message;
+                    // Populate form
+                    $('#memberForm [name="full_name"]').val(member.full_name);
+                    $('#memberForm [name="province"]').val(member.province);
+                    // Add more fields
+                    
+                    $('#memberModal').modal('show');
+                }
+            }
+        });
+    }
+
+    function deleteMember(name) {
+        frappe.confirm(
+            __('هل أنت متأكد من حذف هذا العضو؟'),
+            function() {
+                frappe.call({
+                    method: 'umt.umt.www.admin.members.delete_member',
+                    args: { name: name },
+                    callback: function(r) {
+                        if (!r.exc) {
+                            frappe.show_alert({
+                                message: __('تم حذف العضو بنجاح'),
+                                indicator: 'green'
+                            });
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        );
+    }
+
+    function exportMembers() {
+        var filters = {
+            province: $('#provinceFilter').val(),
+            status: $('#statusFilter').val(),
+            year: $('#yearFilter').val()
+        };
+        
+        window.location.href = '/api/method/umt.umt.www.admin.members.export_members?' + 
+            $.param(filters);
+    }
+</script>
+{% endblock %}

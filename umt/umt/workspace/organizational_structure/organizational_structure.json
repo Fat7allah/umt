@@ -1,0 +1,96 @@
+{
+ "charts": [
+  {
+   "chart_name": "Structure Distribution",
+   "label": "توزيع الهياكل"
+  },
+  {
+   "chart_name": "Position Distribution",
+   "label": "توزيع المناصب"
+  }
+ ],
+ "content": [
+  {
+   "label": "هيكل UNEM",
+   "links": "[\n    {\n        \"label\": \"منصب جديد\",\n        \"name\": \"UNEM_Structure\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"تقرير الهيكل\",\n        \"name\": \"UNEM Structure Report\",\n        \"onboard\": 1,\n        \"type\": \"report\"\n    },\n    {\n        \"label\": \"تحليل المناصب\",\n        \"name\": \"Position Analysis\",\n        \"onboard\": 0,\n        \"type\": \"page\"\n    }\n]"
+  },
+  {
+   "label": "هيكل التعاضدية",
+   "links": "[\n    {\n        \"label\": \"منصب جديد\",\n        \"name\": \"Mutual_Structure\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"تقرير التعاضدية\",\n        \"name\": \"Mutual Structure Report\",\n        \"onboard\": 1,\n        \"type\": \"report\"\n    },\n    {\n        \"label\": \"تحليل الولايات\",\n        \"name\": \"Mandate Analysis\",\n        \"onboard\": 0,\n        \"type\": \"page\"\n    }\n]"
+  },
+  {
+   "label": "التقارير والتحليلات",
+   "links": "[\n    {\n        \"label\": \"تقرير الهياكل الشامل\",\n        \"name\": \"Structure Overview Report\",\n        \"onboard\": 1,\n        \"type\": \"report\"\n    },\n    {\n        \"label\": \"لوحة معلومات الهياكل\",\n        \"name\": \"Structure Dashboard\",\n        \"onboard\": 0,\n        \"type\": \"dashboard\"\n    }\n]"
+  }
+ ],
+ "creation": "2025-01-03 16:42:18.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "organization",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Organizational Structure",
+ "links": [],
+ "modified": "2025-01-03 16:42:18.000000",
+ "modified_by": "Administrator",
+ "module": "UMT",
+ "name": "Organizational Structure",
+ "number_cards": [
+  {
+   "label": "مناصب UNEM",
+   "name": "UNEM Positions",
+   "stats_filter": "{\n    \"doctype\": \"UNEM_Structure\",\n    \"filters\": {\n        \"docstatus\": 1\n    }\n}"
+  },
+  {
+   "label": "مناصب التعاضدية",
+   "name": "Mutual Positions",
+   "stats_filter": "{\n    \"doctype\": \"Mutual_Structure\",\n    \"filters\": {\n        \"docstatus\": 1\n    }\n}"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "UNEM Management",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "UNEM_Structure",
+   "label": "المناصب الشاغرة",
+   "quick_list_filter": "{\n    \"status\": \"Vacant\"\n}"
+  },
+  {
+   "document_type": "Mutual_Structure",
+   "label": "الولايات المنتهية",
+   "quick_list_filter": "{\n    \"mandate_status\": \"Expired\"\n}"
+  }
+ ],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "UNEM Manager"
+  }
+ ],
+ "sequence_id": 4.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "format": "{} منصب",
+   "label": "المناصب النشطة",
+   "link_to": "UNEM_Structure",
+   "stats_filter": "{\n    \"doctype\": \"UNEM_Structure\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"status\": \"Active\"\n    }\n}",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "format": "{} ولاية",
+   "label": "الولايات النشطة",
+   "link_to": "Mutual_Structure",
+   "stats_filter": "{\n    \"doctype\": \"Mutual_Structure\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"mandate_status\": \"Active\"\n    }\n}",
+   "type": "DocType"
+  }
+ ],
+ "title": "Organizational Structure"
+}

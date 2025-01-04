@@ -1,0 +1,118 @@
+{
+ "charts": [
+  {
+   "chart_name": "Member Status",
+   "label": "حالة الأعضاء"
+  },
+  {
+   "chart_name": "Financial Summary",
+   "label": "الملخص المالي"
+  }
+ ],
+ "content": [
+  {
+   "label": "إدارة الأعضاء",
+   "links": "[\n    {\n        \"label\": \"عضو جديد\",\n        \"name\": \"Member\",\n        \"onboard\": 1,\n        \"type\": \"doctype\",\n        \"dependencies\": [\"Academic Year\"]\n    },\n    {\n        \"label\": \"بطاقة العضوية\",\n        \"name\": \"Membership_Card\",\n        \"onboard\": 1,\n        \"type\": \"doctype\",\n        \"dependencies\": [\"Member\"]\n    },\n    {\n        \"label\": \"تقرير حالة الأعضاء\",\n        \"name\": \"Member Status Report\",\n        \"onboard\": 0,\n        \"type\": \"report\"\n    }\n]"
+  },
+  {
+   "label": "الهيكل التنظيمي",
+   "links": "[\n    {\n        \"label\": \"هيكل UNEM\",\n        \"name\": \"UNEM_Structure\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"هيكل التعاضدية\",\n        \"name\": \"Mutual_Structure\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    }\n]"
+  },
+  {
+   "label": "المالية",
+   "links": "[\n    {\n        \"label\": \"تسجيل مدخول\",\n        \"name\": \"Income_Entry\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"تسجيل مصروف\",\n        \"name\": \"Expense_Entry\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"التقرير المالي\",\n        \"name\": \"Financial Summary Report\",\n        \"onboard\": 0,\n        \"type\": \"report\"\n    }\n]"
+  },
+  {
+   "label": "الإعدادات",
+   "links": "[\n    {\n        \"label\": \"السنة الدراسية\",\n        \"name\": \"Academic Year\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"إعدادات النظام\",\n        \"name\": \"System Settings\",\n        \"onboard\": 0,\n        \"type\": \"doctype\"\n    }\n]"
+  }
+ ],
+ "creation": "2025-01-03 16:39:49.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "education",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "UNEM Management",
+ "links": [],
+ "modified": "2025-01-03 16:39:49.000000",
+ "modified_by": "Administrator",
+ "module": "UMT",
+ "name": "UNEM Management",
+ "number_cards": [
+  {
+   "label": "مجموع الأعضاء",
+   "name": "Total Members",
+   "stats_filter": "{\n    \"doctype\": \"Member\",\n    \"filters\": {\n        \"docstatus\": 1\n    }\n}"
+  },
+  {
+   "label": "الأعضاء النشطاء",
+   "name": "Active Members",
+   "stats_filter": "{\n    \"doctype\": \"Member\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"membership_status\": \"Active\"\n    }\n}"
+  },
+  {
+   "label": "البطاقات النشطة",
+   "name": "Active Cards",
+   "stats_filter": "{\n    \"doctype\": \"Membership_Card\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"status\": \"Active\"\n    }\n}"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Member",
+   "label": "الأعضاء الجدد",
+   "quick_list_filter": "{\n    \"creation\": [\"Timespan\", \"last\", \"month\"]\n}"
+  },
+  {
+   "document_type": "Income_Entry",
+   "label": "آخر المداخيل",
+   "quick_list_filter": "{\n    \"creation\": [\"Timespan\", \"last\", \"week\"]\n}"
+  },
+  {
+   "document_type": "Expense_Entry",
+   "label": "آخر المصاريف",
+   "quick_list_filter": "{\n    \"creation\": [\"Timespan\", \"last\", \"week\"]\n}"
+  }
+ ],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "UNEM Manager"
+  }
+ ],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "format": "{} عضو",
+   "label": "مجموع الأعضاء",
+   "link_to": "Member",
+   "stats_filter": "{\n    \"doctype\": \"Member\",\n    \"filters\": {\n        \"docstatus\": 1\n    }\n}",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "format": "{} درهم",
+   "label": "المداخيل الشهرية",
+   "link_to": "Income_Entry",
+   "stats_filter": "{\n    \"doctype\": \"Income_Entry\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"posting_date\": [\"Timespan\", \"this\", \"month\"]\n    },\n    \"aggregate_function_based_on\": \"amount\"\n}",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "format": "{} درهم",
+   "label": "المصاريف الشهرية",
+   "link_to": "Expense_Entry",
+   "stats_filter": "{\n    \"doctype\": \"Expense_Entry\",\n    \"filters\": {\n        \"docstatus\": 1,\n        \"posting_date\": [\"Timespan\", \"this\", \"month\"]\n    },\n    \"aggregate_function_based_on\": \"amount\"\n}",
+   "type": "DocType"
+  }
+ ],
+ "title": "UNEM Management"
+}

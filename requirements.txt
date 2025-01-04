@@ -1,0 +1,6 @@
+frappe>=14.0.0
+python-dateutil
+babel
+num2words
+arabic-reshaper
+python-bidi

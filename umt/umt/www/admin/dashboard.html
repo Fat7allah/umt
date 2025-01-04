@@ -1,0 +1,224 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="admin-dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>{{ _("لوحة التحكم الإدارية") }}</h1>
+            <p>{{ _("إدارة نظام UNEM") }}</p>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Quick Stats -->
+        <div class="row stats-row">
+            {% for stat in quick_stats %}
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stat.value }}</div>
+                    <div class="stat-label">{{ _(stat.label) }}</div>
+                    <div class="stat-change {% if stat.change >= 0 %}positive{% else %}negative{% endif %}">
+                        {{ stat.change }}% {{ _("من الشهر الماضي") }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="row mt-4">
+            <!-- Management Modules -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>{{ _("وحدات الإدارة") }}</h3>
+                        <div class="modules-grid">
+                            <!-- Member Management -->
+                            <a href="/admin/members" class="module-card">
+                                <div class="module-icon">
+                                    <i class="fa fa-users"></i>
+                                </div>
+                                <h4>{{ _("إدارة الأعضاء") }}</h4>
+                                <p>{{ _("إدارة الأعضاء، البطاقات، والعضويات") }}</p>
+                            </a>
+
+                            <!-- Financial Management -->
+                            <a href="/admin/finance" class="module-card">
+                                <div class="module-icon">
+                                    <i class="fa fa-money"></i>
+                                </div>
+                                <h4>{{ _("الإدارة المالية") }}</h4>
+                                <p>{{ _("إدارة المداخيل، المصاريف، والمدفوعات") }}</p>
+                            </a>
+
+                            <!-- Structure Management -->
+                            <a href="/admin/structure" class="module-card">
+                                <div class="module-icon">
+                                    <i class="fa fa-sitemap"></i>
+                                </div>
+                                <h4>{{ _("إدارة الهياكل") }}</h4>
+                                <p>{{ _("إدارة هياكل UNEM والتعاضدية") }}</p>
+                            </a>
+
+                            <!-- Settings -->
+                            <a href="/admin/settings" class="module-card">
+                                <div class="module-icon">
+                                    <i class="fa fa-cogs"></i>
+                                </div>
+                                <h4>{{ _("الإعدادات") }}</h4>
+                                <p>{{ _("إعدادات النظام والتكوين") }}</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>{{ _("آخر النشاطات") }}</h3>
+                        <div class="activity-feed">
+                            {% for activity in recent_activities %}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fa fa-{{ activity.icon }}"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">{{ activity.description }}</div>
+                                    <div class="activity-time">{{ activity.time }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h3>{{ _("إجراءات سريعة") }}</h3>
+                        <div class="quick-actions">
+                            <a href="/admin/members/new" class="btn btn-primary">
+                                <i class="fa fa-plus"></i> {{ _("عضو جديد") }}
+                            </a>
+                            <a href="/admin/cards/new" class="btn btn-success">
+                                <i class="fa fa-id-card"></i> {{ _("بطاقة جديدة") }}
+                            </a>
+                            <a href="/admin/reports" class="btn btn-info">
+                                <i class="fa fa-file"></i> {{ _("التقارير") }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    .admin-dashboard {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1a237e;
+    }
+
+    .stat-change.positive {
+        color: #4caf50;
+    }
+
+    .stat-change.negative {
+        color: #f44336;
+    }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .module-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.3s ease;
+    }
+
+    .module-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .module-icon {
+        font-size: 2.5rem;
+        color: #1a237e;
+        margin-bottom: 1rem;
+    }
+
+    .activity-feed {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: start;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        background: #e3f2fd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+
+    .activity-time {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,437 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="admin-finance">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>{{ _("الإدارة المالية") }}</h1>
+                    <p>{{ _("إدارة المداخيل والمصاريف") }}</p>
+                </div>
+                <div class="header-actions">
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="showTransactionForm('income')">
+                            <i class="fa fa-plus-circle"></i> {{ _("مدخول جديد") }}
+                        </button>
+                        <button class="btn btn-danger" onclick="showTransactionForm('expense')">
+                            <i class="fa fa-minus-circle"></i> {{ _("مصروف جديد") }}
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary" onclick="exportTransactions()">
+                        <i class="fa fa-download"></i> {{ _("تصدير") }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Financial Summary Cards -->
+        <div class="row summary-cards">
+            <div class="col-md-3">
+                <div class="card summary-card income">
+                    <div class="card-body">
+                        <h5>{{ _("مجموع المداخيل") }}</h5>
+                        <h3>{{ total_income }} {{ _("درهم") }}</h3>
+                        <p>{{ _("هذا الشهر") }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card expense">
+                    <div class="card-body">
+                        <h5>{{ _("مجموع المصاريف") }}</h5>
+                        <h3>{{ total_expenses }} {{ _("درهم") }}</h3>
+                        <p>{{ _("هذا الشهر") }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card balance">
+                    <div class="card-body">
+                        <h5>{{ _("الرصيد") }}</h5>
+                        <h3>{{ balance }} {{ _("درهم") }}</h3>
+                        <p>{{ _("الرصيد الحالي") }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card pending">
+                    <div class="card-body">
+                        <h5>{{ _("المعاملات المعلقة") }}</h5>
+                        <h3>{{ pending_count }}</h3>
+                        <p>{{ _("تحتاج للمراجعة") }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>{{ _("نوع المعاملة") }}</label>
+                            <select class="form-control" id="typeFilter">
+                                <option value="">{{ _("الكل") }}</option>
+                                <option value="income">{{ _("مداخيل") }}</option>
+                                <option value="expense">{{ _("مصاريف") }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>{{ _("السنة الدراسية") }}</label>
+                            <select class="form-control" id="yearFilter">
+                                {% for year in academic_years %}
+                                <option value="{{ year.name }}">{{ year.year_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>{{ _("من تاريخ") }}</label>
+                            <input type="date" class="form-control" id="dateFrom">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>{{ _("إلى تاريخ") }}</label>
+                            <input type="date" class="form-control" id="dateTo">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>{{ _("الحالة") }}</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="">{{ _("الكل") }}</option>
+                                <option value="Pending">{{ _("معلق") }}</option>
+                                <option value="Approved">{{ _("مصادق") }}</option>
+                                <option value="Rejected">{{ _("مرفوض") }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>{{ _("الرقم المرجعي") }}</th>
+                                <th>{{ _("التاريخ") }}</th>
+                                <th>{{ _("النوع") }}</th>
+                                <th>{{ _("الوصف") }}</th>
+                                <th>{{ _("المبلغ") }}</th>
+                                <th>{{ _("طريقة الدفع") }}</th>
+                                <th>{{ _("الحالة") }}</th>
+                                <th>{{ _("إجراءات") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr class="{{ transaction.type }}">
+                                <td>{{ transaction.name }}</td>
+                                <td>{{ transaction.posting_date }}</td>
+                                <td>{{ _(transaction.type) }}</td>
+                                <td>{{ transaction.description }}</td>
+                                <td class="amount">{{ transaction.amount }}</td>
+                                <td>{{ transaction.payment_method }}</td>
+                                <td>
+                                    <span class="status-badge {{ transaction.status.lower() }}">
+                                        {{ _(transaction.status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-info" onclick="viewTransaction('{{ transaction.name }}')">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                        {% if transaction.status == 'Pending' %}
+                                        <button class="btn btn-sm btn-success" onclick="approveTransaction('{{ transaction.name }}')">
+                                            <i class="fa fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="rejectTransaction('{{ transaction.name }}')">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Form Modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="transactionForm">
+                    <input type="hidden" name="transaction_type" id="transactionType">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ _("المبلغ") }}</label>
+                                <input type="number" class="form-control" name="amount" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ _("طريقة الدفع") }}</label>
+                                <select class="form-control" name="payment_method" required>
+                                    {% for method in payment_methods %}
+                                    <option value="{{ method.name }}">{{ method.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("الوصف") }}</label>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("إرفاق وصل") }}</label>
+                        <input type="file" class="form-control" name="receipt">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    {{ _("إلغاء") }}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveTransaction()">
+                    {{ _("حفظ") }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    .admin-finance {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .summary-cards .card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .summary-card.income {
+        background: linear-gradient(135deg, #4caf50, #43a047);
+        color: white;
+    }
+
+    .summary-card.expense {
+        background: linear-gradient(135deg, #f44336, #e53935);
+        color: white;
+    }
+
+    .summary-card.balance {
+        background: linear-gradient(135deg, #2196f3, #1e88e5);
+        color: white;
+    }
+
+    .summary-card.pending {
+        background: linear-gradient(135deg, #ff9800, #fb8c00);
+        color: white;
+    }
+
+    .status-badge {
+        padding: 0.25rem 1rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .status-badge.pending {
+        background-color: #ff9800;
+        color: white;
+    }
+
+    .status-badge.approved {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .status-badge.rejected {
+        background-color: #f44336;
+        color: white;
+    }
+
+    tr.income .amount {
+        color: #4caf50;
+    }
+
+    tr.expense .amount {
+        color: #f44336;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+    frappe.ready(function() {
+        // Initialize DataTable
+        var table = $('#transactionsTable').DataTable({
+            order: [[1, 'desc']],
+            pageLength: 25,
+            dom: 'rtip',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Arabic.json'
+            }
+        });
+
+        // Handle filters
+        $('#typeFilter, #yearFilter, #statusFilter').on('change', function() {
+            table.draw();
+        });
+
+        $('#dateFrom, #dateTo').on('change', function() {
+            table.draw();
+        });
+
+        // Custom filtering function
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            var type = $('#typeFilter').val();
+            var year = $('#yearFilter').val();
+            var status = $('#statusFilter').val();
+            var dateFrom = $('#dateFrom').val();
+            var dateTo = $('#dateTo').val();
+
+            var rowDate = new Date(data[1]);
+            var filterDateFrom = dateFrom ? new Date(dateFrom) : null;
+            var filterDateTo = dateTo ? new Date(dateTo) : null;
+
+            if (
+                (type === "" || data[2] === type) &&
+                (status === "" || data[6].includes(status)) &&
+                (!filterDateFrom || rowDate >= filterDateFrom) &&
+                (!filterDateTo || rowDate <= filterDateTo)
+            ) {
+                return true;
+            }
+            return false;
+        });
+    });
+
+    function showTransactionForm(type) {
+        $('#transactionType').val(type);
+        $('#modalTitle').text(type === 'income' ? __('مدخول جديد') : __('مصروف جديد'));
+        $('#transactionForm')[0].reset();
+        $('#transactionModal').modal('show');
+    }
+
+    function saveTransaction() {
+        var formData = new FormData($('#transactionForm')[0]);
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.finance.save_transaction',
+            args: {
+                data: Object.fromEntries(formData)
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم حفظ المعاملة بنجاح'),
+                        indicator: 'green'
+                    });
+                    $('#transactionModal').modal('hide');
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    function viewTransaction(name) {
+        window.location.href = '/admin/finance/transaction/' + name;
+    }
+
+    function approveTransaction(name) {
+        updateTransactionStatus(name, 'Approved');
+    }
+
+    function rejectTransaction(name) {
+        updateTransactionStatus(name, 'Rejected');
+    }
+
+    function updateTransactionStatus(name, status) {
+        frappe.call({
+            method: 'umt.umt.www.admin.finance.update_transaction_status',
+            args: {
+                name: name,
+                status: status
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم تحديث حالة المعاملة'),
+                        indicator: 'green'
+                    });
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    function exportTransactions() {
+        var filters = {
+            type: $('#typeFilter').val(),
+            year: $('#yearFilter').val(),
+            status: $('#statusFilter').val(),
+            date_from: $('#dateFrom').val(),
+            date_to: $('#dateTo').val()
+        };
+        
+        window.location.href = '/api/method/umt.umt.www.admin.finance.export_transactions?' + 
+            $.param(filters);
+    }
+</script>
+{% endblock %}

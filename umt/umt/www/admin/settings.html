@@ -1,0 +1,534 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="admin-settings">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>{{ _("إعدادات النظام") }}</h1>
+                    <p>{{ _("تكوين وإدارة إعدادات النظام") }}</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveAllSettings()">
+                        <i class="fa fa-save"></i> {{ _("حفظ التغييرات") }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Settings Navigation -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="nav flex-column nav-pills" role="tablist">
+                    <a class="nav-link active" data-toggle="pill" href="#general">
+                        <i class="fa fa-cog"></i> {{ _("الإعدادات العامة") }}
+                    </a>
+                    <a class="nav-link" data-toggle="pill" href="#email">
+                        <i class="fa fa-envelope"></i> {{ _("إعدادات البريد") }}
+                    </a>
+                    <a class="nav-link" data-toggle="pill" href="#payment">
+                        <i class="fa fa-credit-card"></i> {{ _("طرق الدفع") }}
+                    </a>
+                    <a class="nav-link" data-toggle="pill" href="#notifications">
+                        <i class="fa fa-bell"></i> {{ _("الإشعارات") }}
+                    </a>
+                    <a class="nav-link" data-toggle="pill" href="#backup">
+                        <i class="fa fa-database"></i> {{ _("النسخ الاحتياطي") }}
+                    </a>
+                    <a class="nav-link" data-toggle="pill" href="#security">
+                        <i class="fa fa-shield"></i> {{ _("الأمان") }}
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="tab-content">
+                    <!-- General Settings -->
+                    <div class="tab-pane fade show active" id="general">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>{{ _("الإعدادات العامة") }}</h5>
+                                <form id="generalForm">
+                                    <div class="form-group">
+                                        <label>{{ _("إسم المنظمة") }}</label>
+                                        <input type="text" class="form-control" name="organization_name" 
+                                               value="{{ settings.organization_name }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("العنوان") }}</label>
+                                        <textarea class="form-control" name="address" 
+                                                  rows="2">{{ settings.address }}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("رقم الهاتف") }}</label>
+                                        <input type="tel" class="form-control" name="phone" 
+                                               value="{{ settings.phone }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("البريد الإلكتروني") }}</label>
+                                        <input type="email" class="form-control" name="email" 
+                                               value="{{ settings.email }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("اللغة الافتراضية") }}</label>
+                                        <select class="form-control" name="default_language">
+                                            {% for lang in languages %}
+                                            <option value="{{ lang.code }}" 
+                                                    {% if lang.code == settings.default_language %}selected{% endif %}>
+                                                {{ lang.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Settings -->
+                    <div class="tab-pane fade" id="email">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>{{ _("إعدادات البريد الإلكتروني") }}</h5>
+                                <form id="emailForm">
+                                    <div class="form-group">
+                                        <label>{{ _("خادم SMTP") }}</label>
+                                        <input type="text" class="form-control" name="smtp_server" 
+                                               value="{{ settings.smtp_server }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("المنفذ") }}</label>
+                                        <input type="number" class="form-control" name="smtp_port" 
+                                               value="{{ settings.smtp_port }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("اسم المستخدم") }}</label>
+                                        <input type="text" class="form-control" name="smtp_user" 
+                                               value="{{ settings.smtp_user }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("كلمة المرور") }}</label>
+                                        <input type="password" class="form-control" name="smtp_password">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _("البريد الإلكتروني المرسل") }}</label>
+                                        <input type="email" class="form-control" name="from_email" 
+                                               value="{{ settings.from_email }}">
+                                    </div>
+                                    <button type="button" class="btn btn-info" onclick="testEmailSettings()">
+                                        <i class="fa fa-paper-plane"></i> {{ _("اختبار الإعدادات") }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="tab-pane fade" id="payment">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5>{{ _("طرق الدفع") }}</h5>
+                                    <button class="btn btn-sm btn-primary" onclick="showPaymentMethodForm()">
+                                        <i class="fa fa-plus"></i> {{ _("إضافة طريقة دفع") }}
+                                    </button>
+                                </div>
+                                <div class="payment-methods-list">
+                                    {% for method in payment_methods %}
+                                    <div class="payment-method-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6>{{ method.name }}</h6>
+                                                <p class="mb-0">{{ method.description }}</p>
+                                            </div>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" 
+                                                       id="method_{{ method.name }}"
+                                                       {% if method.enabled %}checked{% endif %}
+                                                       onchange="togglePaymentMethod('{{ method.name }}')">
+                                                <label class="custom-control-label" 
+                                                       for="method_{{ method.name }}"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="tab-pane fade" id="notifications">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>{{ _("إعدادات الإشعارات") }}</h5>
+                                <form id="notificationForm">
+                                    {% for notification in notifications %}
+                                    <div class="notification-setting">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6>{{ notification.title }}</h6>
+                                                <p class="mb-0">{{ notification.description }}</p>
+                                            </div>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" 
+                                                       id="notif_{{ notification.name }}"
+                                                       {% if notification.enabled %}checked{% endif %}
+                                                       name="notifications">
+                                                <label class="custom-control-label" 
+                                                       for="notif_{{ notification.name }}"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup -->
+                    <div class="tab-pane fade" id="backup">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>{{ _("النسخ الاحتياطي") }}</h5>
+                                <div class="backup-info mb-4">
+                                    <p>{{ _("آخر نسخة احتياطية") }}: {{ last_backup_date or _("لا يوجد") }}</p>
+                                    <button class="btn btn-primary" onclick="createBackup()">
+                                        <i class="fa fa-download"></i> {{ _("إنشاء نسخة احتياطية") }}
+                                    </button>
+                                </div>
+                                <div class="backup-list">
+                                    <h6>{{ _("النسخ الاحتياطية السابقة") }}</h6>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ _("التاريخ") }}</th>
+                                                <th>{{ _("الحجم") }}</th>
+                                                <th>{{ _("إجراءات") }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for backup in backups %}
+                                            <tr>
+                                                <td>{{ backup.date }}</td>
+                                                <td>{{ backup.size }}</td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-sm btn-info" 
+                                                                onclick="downloadBackup('{{ backup.name }}')">
+                                                            <i class="fa fa-download"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger" 
+                                                                onclick="deleteBackup('{{ backup.name }}')">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security -->
+                    <div class="tab-pane fade" id="security">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>{{ _("إعدادات الأمان") }}</h5>
+                                <form id="securityForm">
+                                    <div class="form-group">
+                                        <label>{{ _("مدة صلاحية الجلسة (دقائق)") }}</label>
+                                        <input type="number" class="form-control" name="session_expiry" 
+                                               value="{{ settings.session_expiry }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" 
+                                                   id="two_factor_auth"
+                                                   {% if settings.two_factor_auth %}checked{% endif %}
+                                                   name="two_factor_auth">
+                                            <label class="custom-control-label" for="two_factor_auth">
+                                                {{ _("تفعيل المصادقة الثنائية") }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" 
+                                                   id="force_password_reset"
+                                                   {% if settings.force_password_reset %}checked{% endif %}
+                                                   name="force_password_reset">
+                                            <label class="custom-control-label" for="force_password_reset">
+                                                {{ _("إجبار تغيير كلمة المرور كل 90 يوم") }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Method Modal -->
+<div class="modal fade" id="paymentMethodModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _("طريقة دفع جديدة") }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentMethodForm">
+                    <div class="form-group">
+                        <label>{{ _("الإسم") }}</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("الوصف") }}</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ _("معلومات إضافية") }}</label>
+                        <textarea class="form-control" name="instructions" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    {{ _("إلغاء") }}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="savePaymentMethod()">
+                    {{ _("حفظ") }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+    .admin-settings {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .nav-pills .nav-link {
+        color: #495057;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #1a237e;
+    }
+
+    .nav-pills .nav-link i {
+        margin-right: 0.5rem;
+    }
+
+    .payment-method-item {
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .notification-setting {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .notification-setting:last-child {
+        border-bottom: none;
+    }
+
+    .backup-info {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+    frappe.ready(function() {
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    function saveAllSettings() {
+        var settings = {
+            general: getFormData('#generalForm'),
+            email: getFormData('#emailForm'),
+            notifications: getNotificationSettings(),
+            security: getFormData('#securityForm')
+        };
+
+        frappe.call({
+            method: 'umt.umt.www.admin.settings.save_settings',
+            args: { settings: settings },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم حفظ الإعدادات بنجاح'),
+                        indicator: 'green'
+                    });
+                }
+            }
+        });
+    }
+
+    function getFormData(formId) {
+        var formData = new FormData($(formId)[0]);
+        return Object.fromEntries(formData);
+    }
+
+    function getNotificationSettings() {
+        var notifications = [];
+        $('input[name="notifications"]:checked').each(function() {
+            notifications.push($(this).attr('id').replace('notif_', ''));
+        });
+        return notifications;
+    }
+
+    function testEmailSettings() {
+        var emailSettings = getFormData('#emailForm');
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.settings.test_email_settings',
+            args: { settings: emailSettings },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم إرسال بريد الاختبار بنجاح'),
+                        indicator: 'green'
+                    });
+                }
+            }
+        });
+    }
+
+    function showPaymentMethodForm() {
+        $('#paymentMethodForm')[0].reset();
+        $('#paymentMethodModal').modal('show');
+    }
+
+    function savePaymentMethod() {
+        var formData = getFormData('#paymentMethodForm');
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.settings.save_payment_method',
+            args: { data: formData },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم حفظ طريقة الدفع بنجاح'),
+                        indicator: 'green'
+                    });
+                    $('#paymentMethodModal').modal('hide');
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    function togglePaymentMethod(name) {
+        var enabled = $(`#method_${name}`).prop('checked');
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.settings.toggle_payment_method',
+            args: {
+                name: name,
+                enabled: enabled
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم تحديث حالة طريقة الدفع'),
+                        indicator: 'green'
+                    });
+                }
+            }
+        });
+    }
+
+    function createBackup() {
+        frappe.show_alert({
+            message: __('جاري إنشاء نسخة احتياطية...'),
+            indicator: 'blue'
+        });
+        
+        frappe.call({
+            method: 'umt.umt.www.admin.settings.create_backup',
+            callback: function(r) {
+                if (!r.exc) {
+                    frappe.show_alert({
+                        message: __('تم إنشاء النسخة الاحتياطية بنجاح'),
+                        indicator: 'green'
+                    });
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    function downloadBackup(name) {
+        window.location.href = '/api/method/umt.umt.www.admin.settings.download_backup?name=' + name;
+    }
+
+    function deleteBackup(name) {
+        frappe.confirm(
+            __('هل أنت متأكد من حذف هذه النسخة الاحتياطية؟'),
+            function() {
+                frappe.call({
+                    method: 'umt.umt.www.admin.settings.delete_backup',
+                    args: { name: name },
+                    callback: function(r) {
+                        if (!r.exc) {
+                            frappe.show_alert({
+                                message: __('تم حذف النسخة الاحتياطية بنجاح'),
+                                indicator: 'green'
+                            });
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        );
+    }
+</script>
+{% endblock %}
