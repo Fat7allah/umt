@@ -1,1 +1,5 @@
-{}
+{
+    "umt": {
+        "js/umt.bundle.js": []
+    }
+}

@@ -4,7 +4,7 @@
   "description": "UNEM Management Tool",
   "main": "index.js",
   "scripts": {
-    "build": "yarn run production",
+    "build": "webpack --config webpack.config.js",
     "production": "FRAPPE_ENV=production node ../frappe/esbuild"
   },
   "dependencies": {
@@ -13,6 +13,8 @@
     "frappe-gantt": "^0.6.0"
   },
   "devDependencies": {
-    "esbuild": "^0.14.29"
+    "esbuild": "^0.14.29",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
   }
 }
