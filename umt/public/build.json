@@ -1,0 +1,8 @@
+{
+    "js/umt.bundle.js": [
+        "public/js/umt.js"
+    ],
+    "css/umt.css": [
+        "public/css/umt.css"
+    ]
+}
