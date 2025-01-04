@@ -5,29 +5,6 @@ app_description = "UNEM Management Tool"
 app_email = "admin@unem.ma"
 app_license = "MIT"
 
-# Includes in <head>
-# ------------------
-
-# include js, css files in header of desk.html
-app_include_css = "/assets/umt/css/umt.css"
-app_include_js = "/assets/umt/js/umt.bundle.js"
-
-# include js, css files in header of web template
-web_include_css = [
-    "/assets/umt/css/umt.css"
-]
-web_include_js = [
-    "/assets/umt/js/umt.bundle.js"
-]
-
-# Website Route Rules
-website_route_rules = [
-    {"from_route": "/admin/settings", "to_route": "admin/settings"},
-    {"from_route": "/admin/dashboard", "to_route": "admin/dashboard"},
-    {"from_route": "/admin/members", "to_route": "admin/members"},
-    {"from_route": "/admin/structure", "to_route": "admin/structure"}
-]
-
 # Document Events
 doc_events = {
     "Member": {
@@ -42,6 +19,14 @@ doc_events = {
         "on_update": "umt.doctype.notification_settings.notification_settings.on_update",
     }
 }
+
+# Website Route Rules
+website_route_rules = [
+    {"from_route": "/admin/settings", "to_route": "admin/settings"},
+    {"from_route": "/admin/dashboard", "to_route": "admin/dashboard"},
+    {"from_route": "/admin/members", "to_route": "admin/members"},
+    {"from_route": "/admin/structure", "to_route": "admin/structure"}
+]
 
 # Scheduled Tasks
 scheduler_events = {
@@ -60,52 +45,4 @@ scheduler_events = {
 doctype_js = {
     "Member": "public/js/member.js",
     "Payment Method": "public/js/payment_method.js"
-}
-
-# Web Form
-web_form_schema = {
-    "Member Registration": {
-        "doctype": "Member",
-        "route": "member-registration",
-        "title": "Member Registration"
-    }
-}
-
-# Fixtures
-fixtures = [
-    {
-        "doctype": "Custom Field",
-        "filters": [
-            ["dt", "in", (
-                "Member",
-                "Membership_Card",
-                "UNEM_Structure",
-                "Mutual_Structure",
-                "Income_Entry",
-                "Expense_Entry"
-            )]
-        ]
-    }
-]
-
-# Translation
-translation_modules = ["py", "js"]
-
-# Language
-language_data = {
-    "ar": {
-        "name": "Arabic",
-        "direction": "rtl"
-    }
-}
-
-# Workspaces
-default_workspaces = {
-    "UNEM": {
-        "category": "Modules",
-        "icon": "education",
-        "type": "module",
-        "link": "modules/UNEM",
-        "label": "UNEM"
-    }
 }
