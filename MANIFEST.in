@@ -16,6 +16,3 @@ recursive-include umt *.py
 recursive-include umt *.svg
 recursive-include umt *.txt
 recursive-exclude umt *.pyc
-recursive-exclude * *.py[cod]
-recursive-exclude * __pycache__
-recursive-exclude * *.so

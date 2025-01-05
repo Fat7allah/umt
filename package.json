@@ -8,5 +8,7 @@
   },
   "keywords": [],
   "author": "UMT",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
 }
