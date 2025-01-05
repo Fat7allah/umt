@@ -5,6 +5,10 @@ app_description = "UNEM Management Tool"
 app_email = "admin@unem.ma"
 app_license = "MIT"
 
+# Includes in <head>
+app_include_css = "/assets/css/umt.bundle.css"
+app_include_js = "/assets/js/umt.bundle.js"
+
 # Document Events
 doc_events = {
     "Member": {

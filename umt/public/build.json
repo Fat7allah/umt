@@ -1,5 +1,8 @@
 {
-    "umt": {
-        "js/umt.bundle.js": []
-    }
+    "js/umt.bundle.js": [
+        "public/js/umt.js"
+    ],
+    "css/umt.bundle.css": [
+        "public/css/umt.css"
+    ]
 }
