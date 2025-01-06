@@ -6,8 +6,8 @@ app_email = "admin@unem.ma"
 app_license = "MIT"
 
 # Includes in <head>
-app_include_css = "/assets/umt/css/umt.css"
-app_include_js = "/assets/umt/js/umt.js"
+app_include_css = "/assets/umt/css/umt.min.css"
+app_include_js = "/assets/umt/js/umt.min.js"
 
 # Document Events
 doc_events = {

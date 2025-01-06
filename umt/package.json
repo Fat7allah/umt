@@ -1,0 +1,14 @@
+{
+  "name": "umt",
+  "version": "1.0.0",
+  "description": "UNEM Management Tool",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd ../frappe && yarn build"
+  },
+  "keywords": [],
+  "author": "UMT",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,8 +1,8 @@
 {
-    "css/umt.css": [
-        "public/css/umt.css"
-    ],
-    "js/umt.js": [
+    "js/umt.min.js": [
         "public/js/umt.js"
+    ],
+    "css/umt.min.css": [
+        "public/css/umt.css"
     ]
 }
